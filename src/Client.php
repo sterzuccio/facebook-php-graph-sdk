@@ -187,11 +187,18 @@ class Client
         }
 
         list($url, $method, $headers, $body) = $this->prepareRequestMessage($request);
-
-        $psr7Response = $this->httpClient->sendRequest(
+        //OLD
+        /*$psr7Response = $this->httpClient->sendRequest(
             Psr17FactoryDiscovery::findRequestFactory()->createRequest($method, $url, $headers, $body)
-        );
-
+        );*/
+        //NEW
+        $psr7Request = Psr17FactoryDiscovery::findRequestFactory()->createRequest($method, $url);
+        foreach ($headers as $k => $v) {
+            $psr7Request = $psr7Request->withHeader($k, $v);
+        }
+        $psr7Request = $psr7Request->withBody(Psr17FactoryDiscovery::findStreamFactory()->createStream($body));
+        $psr7Response = $this->httpClient->sendRequest($psr7Request);
+        //NEW
         static::$requestCount++;
 
         // Prepare headers from associative array to a single string for each header.
